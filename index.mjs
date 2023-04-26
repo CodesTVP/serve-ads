@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
     if (receiveFirebaseData) {
         res.send(anunciantes)
     } else {
-        getDocs(citiesRef).then(querySnapshot => {
+        getDocs(ref).then(querySnapshot => {
             anunciantes.length = 0
             querySnapshot.forEach(doc => anunciantes.push(doc.data()))
             receiveFirebaseData = true
