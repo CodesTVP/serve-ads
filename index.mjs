@@ -75,5 +75,3 @@ app.post('/post', function (req, res) {
         })
     res.send('Data updated on Firebase')
 })
-
-app.listen(3000);
