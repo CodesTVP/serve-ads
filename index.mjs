@@ -1,5 +1,14 @@
 import { initializeApp } from "firebase/app"
-import { getFirestore, collection, onSnapshot, getDocs } from 'firebase/firestore'
+import {
+    getFirestore,
+    collection,
+    onSnapshot,
+    getDocs,
+    getDoc,
+    doc,
+    setDoc,
+    updateDoc
+} from 'firebase/firestore'
 import express from 'express'
 import cors from 'cors'
 
@@ -14,15 +23,13 @@ const config = {
 
 const firebaseApp = initializeApp(config)
 const db = getFirestore(firebaseApp)
-const ref = collection(db, "anunciantes")
+const anunciantesRef = collection(db, "anunciantes")
 const anunciantes = []
 const app = express()
-let receiveFirebaseData = false
 
-onSnapshot(ref, querySnapshot => {
+onSnapshot(anunciantesRef, querySnapshot => {
     anunciantes.length = 0
     querySnapshot.forEach(doc => anunciantes.push(doc.data()))
-    receiveFirebaseData = true
 })
 
 const port = process.env.PORT || 3333
@@ -34,14 +41,39 @@ app.listen(port, () => {
 app.use(cors())
 
 app.get("/", (req, res) => {
-    if (receiveFirebaseData) {
+    if (anunciantes.length > 0) {
+        anunciantes.forEach(ad => delete ad.range)
         res.send(anunciantes)
     } else {
-        getDocs(ref).then(querySnapshot => {
+        getDocs(anunciantesRef).then(querySnapshot => {
             anunciantes.length = 0
             querySnapshot.forEach(doc => anunciantes.push(doc.data()))
-            receiveFirebaseData = true
+            anunciantes.forEach(ad => delete ad.range)
             res.send(anunciantes)
         })
     }
 })
+
+app.post('/post', function (req, res) {
+    const postQuery = req.query
+    console.log(anunciantes.filter(ad => ad.id === postQuery.id))
+    const docRef = doc(db, 'statistics', postQuery.id)
+    getDoc(docRef)
+        .then(snapshot => {
+            if (snapshot.exists()) {
+                const data = snapshot.data()
+                if (data.hasOwnProperty(postQuery.type))
+                    data[postQuery.type] = data[postQuery.type] + 1
+                else data[postQuery.type] = 1
+                updateDoc(docRef, data)
+            } else {
+                const data = { clicks: 0, views: 0, prints: 0 }
+                data[postQuery.type] = data[postQuery.type] + 1
+                setDoc(docRef, data)
+                    .catch(err => console.log(err))
+            }
+        })
+    res.send('Data updated on Firebase')
+})
+
+app.listen(3000);
