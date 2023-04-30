@@ -56,7 +56,7 @@ app.get("/", (req, res) => {
 
 app.post('/post', function (req, res) {
     const postQuery = req.query
-    console.log(anunciantes.filter(ad => ad.id === postQuery.id))
+    console.log(postQuery)
     const docRef = doc(db, 'statistics', postQuery.id)
     getDoc(docRef)
         .then(snapshot => {
@@ -66,10 +66,23 @@ app.post('/post', function (req, res) {
                     data[postQuery.type] = data[postQuery.type] + 1
                 else data[postQuery.type] = 1
                 updateDoc(docRef, data)
+                    .then(() => {
+                        const ref = doc(db, `statistics/${postQuery.id}/byDay`, new Date().toLocaleDateString())
+                        const dataDay = { clicks: 0, views: 0, prints: 0 }
+                        dataDay[postQuery.type] = dataDay[postQuery.type] + 1
+                        setDoc(ref, dataDay)
+                    })
+                    .catch(err => console.log(err))
             } else {
                 const data = { clicks: 0, views: 0, prints: 0 }
                 data[postQuery.type] = data[postQuery.type] + 1
                 setDoc(docRef, data)
+                    .then(() => {
+                        const ref = doc(db, `statistics/${postQuery.id}/byDay`, new Date().toLocaleDateString())
+                        const dataDay = { clicks: 0, views: 0, prints: 0 }
+                        dataDay[postQuery.type] = dataDay[postQuery.type] + 1
+                        setDoc(ref, dataDay)
+                    })
                     .catch(err => console.log(err))
             }
         })
