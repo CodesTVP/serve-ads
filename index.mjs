@@ -70,7 +70,7 @@ app.post('/post', function (req, res) {
                         const ref = doc(db, `statistics/${postQuery.id}/byDay`, day)
                         const dataDay = { clicks: 0, views: 0, prints: 0 }
                         dataDay[postQuery.type] = dataDay[postQuery.type] + 1
-                        setDoc(ref, dataDay)
+                        updateDoc(ref, dataDay)
                     })
                     .catch(err => console.log(err))
             } else {
