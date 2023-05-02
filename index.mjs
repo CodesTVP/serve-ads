@@ -69,7 +69,7 @@ app.post('/post', function (req, res) {
                         const day = new Date().toLocaleDateString().replace(/\//g, '-')
                         const ref = doc(db, `statistics/${postQuery.id}/byDay`, day)
                         getDoc(ref).then(snapshot => {
-                            if (snapshot.exists) {
+                            if (snapshot.exists()) {
                                 const dataDay = snapshot.data()
                                 dataDay[postQuery.type] = dataDay[postQuery.type] + 1
                                 updateDoc(ref, dataDay)
